@@ -34,5 +34,3 @@ export const loginValidator = [
     .withMessage("Password must be at least 6 characters")
     .escape(),
 ];
-
-

@@ -10,7 +10,6 @@ import {
 } from "./user.service";
 import { CreateUserDTO, loginUserDTO, UpdateUserDTO } from "./user.dto";
 import { AuthRequest } from "../../middleware/auth.middleware";
-import { validationResult } from "express-validator";
 
 /**
  * Register a new user

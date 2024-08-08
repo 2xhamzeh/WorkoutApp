@@ -3,7 +3,6 @@ import app from "../../app";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import { CreateUserDTO } from "./user.dto";
-import { PassThrough } from "stream";
 
 dotenv.config();
 

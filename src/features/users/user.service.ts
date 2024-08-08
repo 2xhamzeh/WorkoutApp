@@ -75,6 +75,6 @@ export const deleteUser = async (id: string): Promise<IUser | null> => {
  * @param {string} id - The id of the user
  * @returns {Promise<IUser | null>} The user document or null if not found
  */
-export const getUserById = async (id: string): Promise<IUser | null> => {
+export const findUserById = async (id: string): Promise<IUser | null> => {
   return User.findById(id);
 };

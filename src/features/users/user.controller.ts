@@ -5,11 +5,12 @@ import {
   findUserByEmail,
   validatePassword,
   updateUser,
-  getUserById,
+  findUserById,
   deleteUser,
 } from "./user.service";
-import { CreateUserDTO, UpdateUserDTO } from "./user.dto";
+import { CreateUserDTO, loginUserDTO, UpdateUserDTO } from "./user.dto";
 import { AuthRequest } from "../../middleware/auth.middleware";
+import { validationResult } from "express-validator";
 
 /**
  * Register a new user
@@ -17,11 +18,15 @@ import { AuthRequest } from "../../middleware/auth.middleware";
  * @param {Response} res - The response object
  */
 export const register = async (req: Request, res: Response) => {
-  const userData: CreateUserDTO = req.body;
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ message: "Invalid data" });
+    }
+    const userData: CreateUserDTO = req.body;
     const userExists = await findUserByEmail(userData.email);
     if (userExists) {
-      return res.status(400).json({ message: "User already exists" });
+      return res.status(409).json({ message: "User already exists" });
     }
     const user = await createUser(userData);
     res.status(201).json({ user });
@@ -36,13 +41,19 @@ export const register = async (req: Request, res: Response) => {
  * @param {Response} res - The response object
  */
 export const login = async (req: Request, res: Response) => {
-  const { email, password }: { email: string; password: string } = req.body;
   try {
-    const user = await findUserByEmail(email);
+    const userData: loginUserDTO = req.body;
+    if (!userData || !userData.email || !userData.password) {
+      return res.status(400).json({ message: "Invalid data" });
+    }
+    const user = await findUserByEmail(userData.email);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    const validPassword = await validatePassword(password, user.password);
+    const validPassword = await validatePassword(
+      userData.password,
+      user.password
+    );
     if (!validPassword) {
       return res.status(400).json({ message: "Invalid password" });
     }
@@ -64,7 +75,7 @@ export const login = async (req: Request, res: Response) => {
 export const getUser = async (req: AuthRequest, res: Response) => {
   const userId: string = req.userId as string;
   try {
-    const user = await getUserById(userId);
+    const user = await findUserById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -80,9 +91,13 @@ export const getUser = async (req: AuthRequest, res: Response) => {
  * @param {Response} res - The response object
  */
 export const update = async (req: AuthRequest, res: Response) => {
-  const userId: string = req.userId as string;
-  const updates: UpdateUserDTO = req.body;
   try {
+    const userId: string = req.userId as string;
+    const updates: UpdateUserDTO = req.body;
+    console.log(updates);
+    if (!updates || (!updates.email && !updates.name && !updates.password)) {
+      return res.status(400).json({ message: "Invalid data" });
+    }
     const user = await updateUser(userId, updates);
     if (!user) {
       return res.status(404).json({ message: "User not found" });

@@ -8,8 +8,12 @@ import {
   findUserById,
   deleteUser,
 } from "./user.service";
-import { CreateUserDTO, loginUserDTO, UpdateUserDTO } from "./user.dto";
-import { AuthRequest } from "../../middleware/auth.middleware";
+import {
+  CreateUserDTO,
+  loginUserDTO,
+  UpdateUserDTO,
+  UserDTO,
+} from "./user.dto";
 import { IUser } from "./user.model";
 import { ErrorType } from "../../utils/error.type";
 
@@ -20,15 +24,16 @@ import { ErrorType } from "../../utils/error.type";
  */
 export const register = async (
   req: Request<{}, {}, CreateUserDTO>,
-  res: Response<IUser | ErrorType>
+  res: Response<UserDTO | ErrorType>
 ) => {
   try {
+    const id = req.userId;
     const userExists = await findUserByEmail(req.body.email);
     if (userExists) {
       return res.status(409).json({ message: "User already exists" });
     }
     const user = await createUser(req.body);
-    res.status(201).json(user);
+    res.status(201).json(userToDTO(user));
   } catch (error) {
     res.status(500).json({ message: `Server error: ${error}` });
   }
@@ -39,18 +44,17 @@ export const register = async (
  * @param {Request} req - The request object
  * @param {Response} res - The response object
  */
-export const login = async (req: Request, res: Response) => {
+export const login = async (
+  req: Request<{}, {}, loginUserDTO>,
+  res: Response<UserDTO | ErrorType>
+) => {
   try {
-    const userData: loginUserDTO = req.body;
-    if (!userData || !userData.email || !userData.password) {
-      return res.status(400).json({ message: "Invalid data" });
-    }
-    const user = await findUserByEmail(userData.email);
+    const user = await findUserByEmail(req.body.email);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
     const validPassword = await validatePassword(
-      userData.password,
+      req.body.password,
       user.password
     );
     if (!validPassword) {
@@ -58,9 +62,11 @@ export const login = async (req: Request, res: Response) => {
     }
     const token = jwt.sign(
       { userId: user._id },
-      process.env.JWT_SECRET as string
+      process.env.JWT_SECRET as string,
+      { expiresIn: "1h" }
     );
-    res.status(200).json({ token });
+    res.setHeader("Authorization", `Bearer ${token}`);
+    res.status(200).json(userToDTO(user));
   } catch (error) {
     res.status(500).json({ message: `Server error: ${error}` });
   }
@@ -68,17 +74,20 @@ export const login = async (req: Request, res: Response) => {
 
 /**
  * Get a user by ID
- * @param {AuthRequest} req - The request object
+ * @param {Request} req - The request object
  * @param {Response} res - The response object
  */
-export const getUser = async (req: AuthRequest, res: Response) => {
-  const userId: string = req.userId as string;
+export const getUser = async (
+  req: Request,
+  res: Response<UserDTO | ErrorType>
+) => {
   try {
+    const userId = req.userId as string;
     const user = await findUserById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    res.status(200).json({ user });
+    res.status(200).json(userToDTO(user));
   } catch (error) {
     res.status(500).json({ message: `Server error: ${error}` });
   }
@@ -86,21 +95,27 @@ export const getUser = async (req: AuthRequest, res: Response) => {
 
 /**
  * Update a user
- * @param {AuthRequest} req - The request object
+ * @param {Request} req - The request object
  * @param {Response} res - The response object
  */
-export const update = async (req: AuthRequest, res: Response) => {
+export const update = async (
+  req: Request<{}, {}, UpdateUserDTO>,
+  res: Response<UserDTO | ErrorType>
+) => {
+  if (
+    !req.body.email &&
+    !req.body.name &&
+    !req.body.password
+  ) {
+    return res.status(400).json({ message: "Invalid data" });
+  }
   try {
-    const userId: string = req.userId as string;
-    const updates: UpdateUserDTO = req.body;
-    if (!updates || (!updates.email && !updates.name && !updates.password)) {
-      return res.status(400).json({ message: "Invalid data" });
-    }
-    const user = await updateUser(userId, updates);
+    const userId = req.userId as string;
+    const user = await updateUser(userId, req.body);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    res.status(200).json({ user });
+    res.status(200).json(userToDTO(user));
   } catch (error) {
     res.status(500).json({ message: `Server error: ${error}` });
   }
@@ -108,18 +123,44 @@ export const update = async (req: AuthRequest, res: Response) => {
 
 /**
  * Delete a user
- * @param {AuthRequest} req - The request object
+ * @param {Request} req - The request object
  * @param {Response} res - The response object
  */
-export const remove = async (req: AuthRequest, res: Response) => {
-  const userId: string = req.userId as string;
+export const remove = async (
+  req: Request,
+  res: Response<UserDTO | ErrorType>
+) => {
   try {
+    const userId = req.userId as string;
     const user = await deleteUser(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    res.status(200).json({ user });
+    res.status(200).json(userToDTO(user));
   } catch (error) {
     res.status(500).json({ message: `Server error: ${error}` });
   }
+};
+
+/**
+ * Transform IUser to UserDTO
+ * @param {IUser} user - The user object
+ * @returns {UserDTO} The transformed user object
+ */
+const userToDTO = (user: IUser): UserDTO => {
+  return {
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    workouts: user.workouts.map((workout) => workout.toString()),
+    week: {
+      Monday: user.week.Monday?.toString() || null,
+      Tuesday: user.week.Tuesday?.toString() || null,
+      Wednesday: user.week.Wednesday?.toString() || null,
+      Thursday: user.week.Thursday?.toString() || null,
+      Friday: user.week.Friday?.toString() || null,
+      Saturday: user.week.Saturday?.toString() || null,
+      Sunday: user.week.Sunday?.toString() || null,
+    },
+  };
 };

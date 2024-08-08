@@ -25,7 +25,7 @@ describe("User Controller", () => {
     it("should register a user", async () => {
       const res = await request(app).post("/api/users/register").send(userData);
       expect(res.status).toBe(201);
-      expect(res.body).toHaveProperty("_id");
+      expect(res.body).toHaveProperty("id");
     });
 
     it("should not register a user with the same email", async () => {
@@ -53,8 +53,8 @@ describe("User Controller", () => {
       });
 
       expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty("token");
-      token = res.body.token;
+      expect(res.header).toHaveProperty("authorization");
+      token = res.header.authorization.split(" ")[1];
     });
 
     it("should not login a user with invalid credentials", async () => {
@@ -94,7 +94,7 @@ describe("User Controller", () => {
         .set("Authorization", `Bearer ${token}`);
 
       expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty("user");
+      expect(res.body).toHaveProperty("id");
     });
 
     it("should not get a user without a token", async () => {
@@ -124,7 +124,7 @@ describe("User Controller", () => {
         });
 
       expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty("user.name", "Jane Smith");
+      expect(res.body).toHaveProperty("name", "Jane Smith");
     });
 
     it("should not update a user without a token", async () => {
@@ -168,7 +168,7 @@ describe("User Controller", () => {
         .set("Authorization", `Bearer ${token}`);
 
       expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty("user");
+      expect(res.body).toHaveProperty("id");
     });
 
     it("should not delete a user without a token", async () => {

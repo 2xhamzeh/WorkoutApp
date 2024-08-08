@@ -25,7 +25,7 @@ describe("User Controller", () => {
     it("should register a user", async () => {
       const res = await request(app).post("/api/users/register").send(userData);
       expect(res.status).toBe(201);
-      expect(res.body).toHaveProperty("user");
+      expect(res.body).toHaveProperty("_id");
     });
 
     it("should not register a user with the same email", async () => {

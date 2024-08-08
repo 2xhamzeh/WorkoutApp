@@ -1,3 +1,0 @@
-Notes:
-
-Test will only be written for routes, so each feature will have a test file testing all its routes. (End to End)

@@ -1,5 +1,5 @@
 import express from "express";
-import userRoutes from "./features/users/user.routes";
+import userRoutes from "./features/user/user.route";
 
 const app = express();
 

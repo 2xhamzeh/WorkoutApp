@@ -10,23 +10,27 @@ import {
 } from "./user.service";
 import { CreateUserDTO, loginUserDTO, UpdateUserDTO } from "./user.dto";
 import { AuthRequest } from "../../middleware/auth.middleware";
+import { IUser } from "./user.model";
+import { ErrorType } from "../../utils/error.type";
 
 /**
  * Register a new user
  * @param {Request} req - The request object
  * @param {Response} res - The response object
  */
-export const register = async (req: Request, res: Response) => {
+export const register = async (
+  req: Request<{}, {}, CreateUserDTO>,
+  res: Response<IUser | ErrorType>
+) => {
   try {
-    const userData: CreateUserDTO = req.body;
-    const userExists = await findUserByEmail(userData.email);
+    const userExists = await findUserByEmail(req.body.email);
     if (userExists) {
       return res.status(409).json({ message: "User already exists" });
     }
-    const user = await createUser(userData);
-    res.status(201).json({ user });
+    const user = await createUser(req.body);
+    res.status(201).json(user);
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ message: `Server error: ${error}` });
   }
 };
 
@@ -58,7 +62,7 @@ export const login = async (req: Request, res: Response) => {
     );
     res.status(200).json({ token });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ message: `Server error: ${error}` });
   }
 };
 
@@ -76,7 +80,7 @@ export const getUser = async (req: AuthRequest, res: Response) => {
     }
     res.status(200).json({ user });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ message: `Server error: ${error}` });
   }
 };
 
@@ -98,7 +102,7 @@ export const update = async (req: AuthRequest, res: Response) => {
     }
     res.status(200).json({ user });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ message: `Server error: ${error}` });
   }
 };
 
@@ -116,6 +120,6 @@ export const remove = async (req: AuthRequest, res: Response) => {
     }
     res.status(200).json({ user });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ message: `Server error: ${error}` });
   }
 };

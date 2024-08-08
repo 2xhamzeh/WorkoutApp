@@ -5,7 +5,10 @@
       "outDir": "./dist",
       "rootDir": "./src",
       "strict": true,
-      "esModuleInterop": true
+      "noImplicitAny": true,
+      "esModuleInterop": true,
+      "strictNullChecks": true,
+      "forceConsistentCasingInFileNames": true,
     },
     "include": ["src/**/*"]
   }

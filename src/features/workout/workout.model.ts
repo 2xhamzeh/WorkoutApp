@@ -1,6 +1,7 @@
 import { Schema, model, Document } from "mongoose";
 
 export interface IWorkout extends Document {
+  _id: string;
   name: string;
   user: Schema.Types.ObjectId;
   exercises: {

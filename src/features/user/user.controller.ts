@@ -27,7 +27,6 @@ export const register = async (
   res: Response<UserDTO | ErrorType>
 ) => {
   try {
-    const id = req.userId;
     const userExists = await findUserByEmail(req.body.email);
     if (userExists) {
       return res.status(409).json({ message: "User already exists" });
@@ -82,8 +81,7 @@ export const getUser = async (
   res: Response<UserDTO | ErrorType>
 ) => {
   try {
-    const userId = req.userId as string;
-    const user = await findUserById(userId);
+    const user = await findUserById(req.userId as string);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -102,16 +100,11 @@ export const update = async (
   req: Request<{}, {}, UpdateUserDTO>,
   res: Response<UserDTO | ErrorType>
 ) => {
-  if (
-    !req.body.email &&
-    !req.body.name &&
-    !req.body.password
-  ) {
+  if (!req.body.email && !req.body.name && !req.body.password) {
     return res.status(400).json({ message: "Invalid data" });
   }
   try {
-    const userId = req.userId as string;
-    const user = await updateUser(userId, req.body);
+    const user = await updateUser(req.userId as string, req.body);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -131,8 +124,7 @@ export const remove = async (
   res: Response<UserDTO | ErrorType>
 ) => {
   try {
-    const userId = req.userId as string;
-    const user = await deleteUser(userId);
+    const user = await deleteUser(req.userId as string);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }

@@ -19,10 +19,6 @@ import { validationResult } from "express-validator";
  */
 export const register = async (req: Request, res: Response) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ message: "Invalid data" });
-    }
     const userData: CreateUserDTO = req.body;
     const userExists = await findUserByEmail(userData.email);
     if (userExists) {
@@ -94,7 +90,6 @@ export const update = async (req: AuthRequest, res: Response) => {
   try {
     const userId: string = req.userId as string;
     const updates: UpdateUserDTO = req.body;
-    console.log(updates);
     if (!updates || (!updates.email && !updates.name && !updates.password)) {
       return res.status(400).json({ message: "Invalid data" });
     }

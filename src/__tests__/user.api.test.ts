@@ -1,26 +1,37 @@
 import request from "supertest";
-import app from "../../app";
-import mongoose from "mongoose";
+import app from "../app";
 import dotenv from "dotenv";
-import { CreateUserDTO } from "./user.dto";
+import { CreateUserDTO, UserDTO } from "../features/user/user.dto";
+import User, { IUser } from "../features/user/user.model";
+import { userToDTO } from "../features/user/user.controller";
+import jwt from "jsonwebtoken";
 
 dotenv.config();
 
-beforeAll(async () => {
-  await mongoose.connect(process.env.DATABASE_URI as string);
-});
-
-afterAll(async () => {
-  await mongoose.connection.close();
-});
-
-describe("User Controller", () => {
+describe("User API", () => {
+  let user: UserDTO;
   let token: string;
+  beforeAll(async () => {
+    user = userToDTO(
+      await User.create({
+        name: "John Doe",
+        email: "john@example.com",
+        password: "password123",
+      })
+    );
+    token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET as string);
+  });
+
+  afterAll(async () => {
+    await User.findByIdAndDelete(user.id);
+  });
+
   let userData: CreateUserDTO = {
-    name: "John Doe",
-    email: "john@example.com",
+    name: "John Smith",
+    email: "smith@example.com",
     password: "password123",
   };
+
   describe("POST /register", () => {
     it("should register a user", async () => {
       const res = await request(app).post("/api/users/register").send(userData);
@@ -48,13 +59,12 @@ describe("User Controller", () => {
   describe("POST /login", () => {
     it("should login a user", async () => {
       const res = await request(app).post("/api/users/login").send({
-        email: "john@example.com",
-        password: "password123",
+        email: userData.email,
+        password: userData.password,
       });
 
       expect(res.status).toBe(200);
       expect(res.header).toHaveProperty("authorization");
-      token = res.header.authorization.split(" ")[1];
     });
 
     it("should not login a user with invalid credentials", async () => {

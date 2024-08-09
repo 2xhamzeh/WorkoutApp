@@ -9,7 +9,7 @@ export type CreateWorkoutDTO = {
   breakBetweenExercises: number;
 };
 
-export type UpdateWorkoutDTO = Partial<CreateWorkoutDTO>;
+export type UpdateWorkoutDTO = CreateWorkoutDTO;
 
 export type WorkoutDTO = CreateWorkoutDTO & {
   id: string;

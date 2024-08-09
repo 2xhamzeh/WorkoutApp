@@ -139,7 +139,7 @@ export const remove = async (
  * @param {IUser} user - The user object
  * @returns {UserDTO} The transformed user object
  */
-const userToDTO = (user: IUser): UserDTO => {
+export const userToDTO = (user: IUser): UserDTO => {
   return {
     id: user._id,
     name: user.name,

@@ -22,6 +22,7 @@ const workoutSchema = new Schema<IWorkout>({
       sets: { type: Number, required: true },
       reps: { type: Number, required: true },
       breakBetweenSets: { type: Number, required: true },
+      _id: false,
     },
   ],
   breakBetweenExercises: { type: Number, required: true },

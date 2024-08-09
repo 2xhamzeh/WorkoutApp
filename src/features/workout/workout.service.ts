@@ -66,3 +66,11 @@ export const workoutBelongsToUser = async (
   const workout = await Workout.findById(workoutId);
   return workout?.user.toString() === userId;
 };
+
+/**
+ * check if a workout exists
+ * @param {string} workoutId - The id of the workout
+ */
+export const workoutExists = async (workoutId: string): Promise<boolean> => {
+  return Boolean(await Workout.findById(workoutId));
+};

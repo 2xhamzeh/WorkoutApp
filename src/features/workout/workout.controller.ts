@@ -4,6 +4,7 @@ import {
   updateWorkout,
   deleteWorkout,
   workoutBelongsToUser,
+  workoutExists,
 } from "./workout.service";
 import { CreateWorkoutDTO, UpdateWorkoutDTO, WorkoutDTO } from "./workout.dto";
 import { IWorkout } from "./workout.model";
@@ -36,6 +37,9 @@ export const update = async (
   res: Response<WorkoutDTO | ErrorType>
 ) => {
   try {
+    if (!(await workoutExists(req.params.id))) {
+      return res.status(404).json({ message: "Workout not found" });
+    }
     const allowed = await workoutBelongsToUser(
       req.params.id,
       req.userId as string
@@ -64,6 +68,9 @@ export const remove = async (
   req: Request<{ id: string }, {}, {}>,
   res: Response<WorkoutDTO | ErrorType>
 ) => {
+  if (!(await workoutExists(req.params.id))) {
+    return res.status(404).json({ message: "Workout not found" });
+  }
   try {
     const allowed = await workoutBelongsToUser(
       req.params.id,
@@ -87,7 +94,7 @@ export const remove = async (
   }
 };
 
-const workoutToDTO = (workout: IWorkout): WorkoutDTO => {
+export const workoutToDTO = (workout: IWorkout): WorkoutDTO => {
   return {
     id: workout._id,
     name: workout.name,
